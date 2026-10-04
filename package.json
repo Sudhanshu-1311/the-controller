@@ -70,6 +70,15 @@
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Sudhanshu-1311",
+        "repo": "the-controller",
+        "releaseType": "release"
+      }
+    ]
   }
 }
+

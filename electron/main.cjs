@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const nativeFileTransfer = require('./file-transfer.cjs');
+const { autoUpdater } = require('electron-updater');
 
 const isBackgroundLaunch = process.argv.includes('--background');
 const gotLock = app.requestSingleInstanceLock();
@@ -453,6 +454,50 @@ app.on('before-quit', (event) => {
 });
 
 app.whenReady().then(() => {
+  if (app.isPackaged) {
+    autoUpdater.autoDownload = false;
+    autoUpdater.autoInstallOnAppQuit = false;
+
+    autoUpdater.on('checking-for-update', () => {
+      mainWindow?.webContents.send('desktop:update:status', {
+        status: 'checking',
+      });
+    });
+
+    autoUpdater.on('update-available', (info) => {
+      mainWindow?.webContents.send('desktop:update:status', {
+        status: 'available',
+        version: info.version,
+      });
+    });
+
+    autoUpdater.on('update-not-available', () => {
+      mainWindow?.webContents.send('desktop:update:status', {
+        status: 'not-available',
+      });
+    });
+
+    autoUpdater.on('download-progress', (progress) => {
+      mainWindow?.webContents.send('desktop:update:status', {
+        status: 'downloading',
+        percent: progress.percent,
+      });
+    });
+
+    autoUpdater.on('update-downloaded', (info) => {
+      mainWindow?.webContents.send('desktop:update:status', {
+        status: 'downloaded',
+        version: info.version,
+      });
+    });
+
+    autoUpdater.on('error', (error) => {
+      mainWindow?.webContents.send('desktop:update:status', {
+        status: 'error',
+        message: error.message,
+      });
+    });
+  }
   if (process.platform === 'win32') session.defaultSession.setDisplayMediaRequestHandler(async (request, callback) => {
     try {
       const display = screen.getAllDisplays().find((item) => String(item.id) === displayCaptureRequest.displayId) || screen.getPrimaryDisplay();
@@ -469,6 +514,11 @@ app.whenReady().then(() => {
   const saved = readEncrypted('agent-settings');
   if (saved) settings = { ...settings, ...saved };
   createTray();
+  if (app.isPackaged) {
+    setTimeout(() => {
+      autoUpdater.checkForUpdates().catch(() => {});
+    }, 10000);
+  }
   const notifySystem = (type, details = {}) => {
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('desktop:system-event', { type, details });
   };
@@ -691,4 +741,21 @@ ipcMain.handle('desktop:auth:google', async () => {
       server.close();
     } catch {}
   }
+});
+ipcMain.handle('desktop:update:check', async () => {
+  if (!app.isPackaged) return { status: 'dev' };
+  await autoUpdater.checkForUpdates();
+  return { status: 'checking' };
+});
+
+ipcMain.handle('desktop:update:download', async () => {
+  if (!app.isPackaged) return { status: 'dev' };
+  await autoUpdater.downloadUpdate();
+  return { status: 'downloading' };
+});
+
+ipcMain.handle('desktop:update:install', () => {
+  if (!app.isPackaged) return false;
+  autoUpdater.quitAndInstall();
+  return true;
 });
