@@ -29,6 +29,7 @@ contextBridge.exposeInMainWorld('controllerDesktop', {
   openSection: (value) => ipcRenderer.invoke('desktop:section', value),
   hideWindow: () => ipcRenderer.invoke('desktop:window:hide'),
   showWindow: () => ipcRenderer.invoke('desktop:window:show'),
+  signInWithGoogle: () => ipcRenderer.invoke('desktop:auth:google'),
   exit: () => ipcRenderer.invoke('desktop:exit'),
 
   checkForUpdates: () => ipcRenderer.invoke('desktop:update:check'),

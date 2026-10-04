@@ -57,11 +57,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   setErrorCode(null);
 
   try {
-   const userCredential = await signInWithPopup(
-  auth,
-  googleProvider
-);
-
+   const userCredential = await window.controllerDesktop.signInWithGoogle();
     const user = userCredential.user;
 
     if (!user.uid) {
