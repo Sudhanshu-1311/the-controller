@@ -8,3 +8,8 @@ coverage/
 *.log
 .env*
 !.env.example
+android/.gradle/
+android/.idea/
+android/local.properties
+android/app/google-services.json
+downloads/
