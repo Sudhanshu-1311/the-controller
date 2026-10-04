@@ -30,27 +30,43 @@ contextBridge.exposeInMainWorld('controllerDesktop', {
   hideWindow: () => ipcRenderer.invoke('desktop:window:hide'),
   showWindow: () => ipcRenderer.invoke('desktop:window:show'),
   exit: () => ipcRenderer.invoke('desktop:exit'),
+
+  checkForUpdates: () => ipcRenderer.invoke('desktop:update:check'),
+  downloadUpdate: () => ipcRenderer.invoke('desktop:update:download'),
+  installUpdate: () => ipcRenderer.invoke('desktop:update:install'),
+
+  onUpdateStatus: (callback) => {
+    const listener = (_event, value) => callback(value);
+    ipcRenderer.on('desktop:update:status', listener);
+    return () => ipcRenderer.removeListener('desktop:update:status', listener);
+  },
+
   onState: (callback) => {
     const listener = (_event, value) => callback(value);
     ipcRenderer.on('agent:state', listener);
     return () => ipcRenderer.removeListener('agent:state', listener);
   },
+
   acknowledgeSignal: (signalId) => ipcRenderer.send('desktop:signal:ack', signalId),
+
   onSignal: (callback) => {
     const listener = (_event, value) => callback(value);
     ipcRenderer.on('agent:signal', listener);
     return () => ipcRenderer.removeListener('agent:signal', listener);
   },
+
   onSettings: (callback) => {
     const listener = (_event, value) => callback(value);
     ipcRenderer.on('agent:settings', listener);
     return () => ipcRenderer.removeListener('agent:settings', listener);
   },
+
   onOpenSection: (callback) => {
     const listener = (_event, value) => callback(value);
     ipcRenderer.on('ui:open-section', listener);
     return () => ipcRenderer.removeListener('ui:open-section', listener);
   },
+
   onSystemEvent: (callback) => {
     const listener = (_event, value) => callback(value);
     ipcRenderer.on('desktop:system-event', listener);
