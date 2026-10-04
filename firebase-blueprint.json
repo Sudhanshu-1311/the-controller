@@ -1,0 +1,83 @@
+{
+  "entities": {
+    "Device": {
+      "title": "Device",
+      "description": "A verified device agent with cryptographic identity and platform telemetry",
+      "type": "object",
+      "properties": {
+        "identity": {
+          "type": "object",
+          "description": "Cryptographic identity of the device"
+        },
+        "name": {
+          "type": "string",
+          "description": "Human readable name of the device node",
+          "maxLength": 100
+        },
+        "role": {
+          "type": "string",
+          "enum": ["agent", "controller"],
+          "description": "Role of the node in the controller network"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Offline", "Connecting", "Waiting for approval", "Connected", "Reconnecting", "Disconnected"],
+          "description": "Actual verified connection state"
+        },
+        "ownerUid": {
+          "type": "string",
+          "description": "Firebase Authentication UID of the device owner"
+        },
+        "authorizedControllerUids": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Firebase Authentication UIDs permitted to discover and request sessions"
+        },
+        "presenceState": {
+          "type": "string",
+          "enum": ["STARTING", "AUTHENTICATING", "REGISTERING", "ONLINE", "RECONNECTING", "OFFLINE", "REMOTE_ACCESS_PAUSED"],
+          "description": "Presence published by the authenticated background agent"
+        },
+        "lastSeen": {
+          "type": "number",
+          "description": "Timestamp of the last browser registration; not a heartbeat or verified online presence"
+        },
+        "fileAccessGranted": {
+          "type": "boolean",
+          "description": "Whether file access is currently permitted"
+        },
+        "screenSharingActive": {
+          "type": "boolean",
+          "description": "Whether display capture stream is active"
+        }
+      },
+      "required": ["identity", "ownerUid", "authorizedControllerUids", "name", "role", "status", "presenceState", "lastSeen"]
+    },
+    "SystemHealth": {
+      "title": "SystemHealth",
+      "description": "Firestore connection validation document",
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "Connection status",
+          "maxLength": 50
+        },
+        "checkedAt": {
+          "type": "number",
+          "description": "Timestamp of check"
+        }
+      }
+    }
+  },
+  "firestore": {
+    "/devices/{deviceId}": {
+      "schema": "Device",
+      "description": "Registered hardware devices and agents with verified cryptographic identity and platform telemetry"
+    },
+    "/system/{systemId}": {
+      "schema": "SystemHealth",
+      "description": "System health and connection verification document"
+    }
+  }
+}

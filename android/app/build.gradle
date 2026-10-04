@@ -1,0 +1,26 @@
+plugins {
+    id 'com.android.application'
+    id 'com.google.gms.google-services'
+}
+android {
+    namespace 'com.thecontroller.android'
+    compileSdk 37
+    dependencies {
+    implementation 'com.google.android.gms:play-services-auth:21.4.0'
+}
+
+    defaultConfig {
+        applicationId 'com.thecontroller.android'
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName '1.0.0'
+    }
+}
+
+def webAssets = file('src/main/assets/site')
+tasks.register('copyWebAssets', Sync) {
+    from rootProject.projectDir.parentFile.toPath().resolve('dist').toFile()
+    into webAssets
+}
+tasks.named('preBuild').configure { dependsOn 'copyWebAssets' }

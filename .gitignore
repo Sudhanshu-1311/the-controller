@@ -1,0 +1,10 @@
+node_modules/
+build/
+dist/
+android/build-manual/
+android/app/src/main/assets/site/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example

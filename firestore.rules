@@ -1,0 +1,87 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    function signedIn() { return request.auth != null; }
+    function validDeviceState(state) {
+      return state in ['STARTING', 'AUTHENTICATING', 'REGISTERING', 'ONLINE', 'RECONNECTING', 'OFFLINE', 'REMOTE_ACCESS_PAUSED'];
+    }
+    function deviceData(deviceId) {
+      return get(/databases/$(database)/documents/devices/$(deviceId)).data;
+    }
+    function ownsDevice(deviceId) {
+      return signedIn() && exists(/databases/$(database)/documents/devices/$(deviceId))
+        && deviceData(deviceId).ownerUid == request.auth.uid;
+    }
+    function mayAccessDevice(deviceId) {
+      return signedIn() && exists(/databases/$(database)/documents/devices/$(deviceId))
+        && (deviceData(deviceId).ownerUid == request.auth.uid
+          || request.auth.uid in deviceData(deviceId).authorizedControllerUids);
+    }
+    function mayStartSession(deviceId) {
+      return mayAccessDevice(deviceId)
+        && deviceData(deviceId).allowRemoteConnections == true
+        && deviceData(deviceId).remoteAccessPaused == false
+        && deviceData(deviceId).presenceState == 'ONLINE';
+    }
+    function maySignalToDevice(senderId, targetId) {
+      return mayAccessDevice(targetId)
+        || (ownsDevice(senderId)
+          && deviceData(targetId).ownerUid in deviceData(senderId).authorizedControllerUids);
+    }
+
+    match /devices/{deviceId} {
+      allow read: if signedIn()
+        && (resource.data.ownerUid == request.auth.uid
+          || request.auth.uid in resource.data.authorizedControllerUids);
+      allow create: if signedIn() && isValidId(deviceId)
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.identity.id == deviceId
+        && request.resource.data.status == 'Offline'
+        && validDeviceState(request.resource.data.presenceState)
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 100
+        && request.resource.data.authorizedControllerUids is list
+        && request.resource.data.authorizedControllerUids.size() <= 100;
+      allow update: if signedIn() && isValidId(deviceId)
+        && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.identity.id == deviceId
+        && request.resource.data.status == 'Offline'
+        && validDeviceState(request.resource.data.presenceState)
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 100
+        && request.resource.data.authorizedControllerUids is list
+        && request.resource.data.authorizedControllerUids.size() <= 100;
+      allow delete: if ownsDevice(deviceId);
+    }
+
+    match /signals/{signalId} {
+      allow create: if signedIn()
+        && request.resource.data.senderUid == request.auth.uid
+        && request.resource.data.senderId is string
+        && request.resource.data.targetId is string
+        && request.resource.data.message is map
+        && request.resource.data.message.senderId == request.resource.data.senderId
+        && request.resource.data.message.targetId == request.resource.data.targetId
+        && ownsDevice(request.resource.data.senderId)
+        && maySignalToDevice(request.resource.data.senderId, request.resource.data.targetId)
+        && (request.resource.data.message.type != 'CONNECT_REQUEST'
+          || mayStartSession(request.resource.data.targetId));
+      allow read, delete: if signedIn() && mayAccessDevice(resource.data.targetId);
+      allow update: if false;
+    }
+
+    match /system/{systemId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+  }
+}

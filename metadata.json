@@ -1,0 +1,10 @@
+{
+  "name": "The Controller",
+  "description": "Real-time remote device manager and telemetry controller with verified WebRTC peer sessions, genuine system diagnostics, and honest empty states.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "display-capture"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
