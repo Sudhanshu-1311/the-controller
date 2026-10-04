@@ -102,5 +102,6 @@ export {
   signInWithPopup,
   signInWithCredential,
   firebaseSignOut,
+  GoogleAuthProvider,
 };
 export type { User };

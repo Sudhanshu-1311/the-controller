@@ -546,7 +546,7 @@ ipcMain.handle('desktop:auth:google', async () => {
   const { shell } = require('electron');
 
   const clientId =
-    '569847162349-2ul4ddn3lj2erb16vqc9p2jahgtvaa8i.apps.googleusercontent.com';
+    '569847162349-32v7ub8hnmdcph2lrai1ge8dgf98n9kl.apps.googleusercontent.com';
 
   const state = crypto.randomBytes(32).toString('hex');
   const codeVerifier = crypto.randomBytes(32).toString('base64url');
@@ -698,11 +698,12 @@ ipcMain.handle('desktop:auth:google', async () => {
               },
               body: new URLSearchParams({
                 client_id: clientId,
+                client_secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
                 code,
                 code_verifier: codeVerifier,
                 redirect_uri: redirectUri,
                 grant_type: 'authorization_code',
-                client_secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
+                
               }),
             }
           );

@@ -13,11 +13,12 @@ import {
   Check,
 } from 'lucide-react';
 import { AuthenticatedUser } from '../services/authService';
-import {
-  auth,
-  googleProvider,
-  signInWithPopup,
+import { 
+  auth, 
+  googleProvider, 
+  signInWithPopup, 
   signInWithCredential,
+  GoogleAuthProvider,
 } from '../services/firebase';interface AuthModalProps {
   isOpen: boolean;
   onSuccess: (user: AuthenticatedUser) => void;
@@ -58,7 +59,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   try {
    const userCredential = await window.controllerDesktop.signInWithGoogle();
-    const user = userCredential.user;
+    const credential = GoogleAuthProvider.credential(
+  userCredential.idToken,
+  userCredential.accessToken || undefined
+);
+
+const firebaseResult = await signInWithCredential(auth, credential);
+const user = firebaseResult.user;
 
     if (!user.uid) {
       throw new Error('Firebase did not return a valid user identity.');
