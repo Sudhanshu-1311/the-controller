@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-const desktopUpdater = window.controllerDesktop;
+const desktopUpdater = typeof window !== 'undefined' ? window.controllerDesktop : undefined;
 import {
   ConnectionState,
   DeviceIdentity,
@@ -41,6 +41,7 @@ export default function App() {
   // Device & System Identity (Genuine WebCrypto & Platform APIs)
   const [myIdentity, setMyIdentity] = useState<DeviceIdentity | null>(null);
   const [updateStatus, setUpdateStatus] = useState('');
+  
   useEffect(() => {
   const unsubscribe = desktopUpdater?.onUpdateStatus?.((status: string) => {
     setUpdateStatus(status);
@@ -434,7 +435,15 @@ const handleApproveConnection = useCallback(
   const displayedConnectionState = isDemoMode ? 'Connected' : connectionState;
 
   return (
+    
     <div className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
+    <div>
+  <button onClick={checkForUpdates}>
+    Check for Updates
+  </button>
+
+  {updateStatus && <span>{updateStatus}</span>}
+</div>
       {/* Isolated Demo Mode Warning Banner */}
       {isDemoMode && (
         <DemoModeBanner onExitDemoMode={() => setIsDemoMode(false)} />
@@ -496,6 +505,20 @@ const handleApproveConnection = useCallback(
       ) : (
         /* Body Content when UI is visible */
         <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+        <div className="flex items-center gap-3">
+  <button
+    onClick={checkForUpdates}
+    className="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold"
+  >
+    Check for Updates
+  </button>
+
+  {updateStatus && (
+    <span className="text-xs text-neutral-400">
+      {updateStatus}
+    </span>
+  )}
+</div>
           {/* AGENT ROLE VIEW */}
           {currentRole === 'agent' ? (
             <AgentView
