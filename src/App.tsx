@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+const desktopUpdater = window.controllerDesktop;
 import {
   ConnectionState,
   DeviceIdentity,
@@ -39,6 +40,14 @@ import { Radio, Maximize2, ShieldCheck, Power } from 'lucide-react';
 export default function App() {
   // Device & System Identity (Genuine WebCrypto & Platform APIs)
   const [myIdentity, setMyIdentity] = useState<DeviceIdentity | null>(null);
+  const [updateStatus, setUpdateStatus] = useState('');
+  useEffect(() => {
+  const unsubscribe = desktopUpdater?.onUpdateStatus?.((status: string) => {
+    setUpdateStatus(status);
+  });
+
+  return () => unsubscribe?.();
+}, []);
   const [systemDiagnostics, setSystemDiagnostics] = useState<SystemDiagnostics | null>(null);
 
   // Background Native Agent State Machine & Settings
