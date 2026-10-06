@@ -507,7 +507,7 @@ const handleApproveConnection = useCallback(
         <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
         <div className="flex items-center gap-3">
   <button
-    onClick={checkForUpdates}
+    onClick={() => desktopUpdater?.checkForUpdates?.()}
     className="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold"
   >
     Check for Updates
